@@ -1,0 +1,20 @@
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.venv
+venv/
+ENV/
+*.log
+.DS_Store
+
+# Docker
+postgres_data/
+
+# Arquivos temporários
+*.ps1
+
+

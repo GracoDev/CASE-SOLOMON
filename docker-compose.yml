@@ -1,0 +1,122 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: analytics_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - analytics-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend 1 - Auth & Trigger (Flask/Python)
+  backend1-auth:
+    build:
+      context: ./backend1-auth
+      dockerfile: Dockerfile
+    container_name: backend1-auth
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/analytics_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - analytics-network
+
+  # Backend 2 - Query API (Go)
+  backend2-api:
+    build:
+      context: ./backend2-api
+      dockerfile: Dockerfile
+    container_name: backend2-api
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/analytics_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - analytics-network
+
+  # Data Source Server (Python)
+  data-source:
+    build:
+      context: ./data-source
+      dockerfile: Dockerfile
+    container_name: data-source
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./orders.csv:/app/orders.csv
+    networks:
+      - analytics-network
+
+  # Pipeline (Go)
+  pipeline:
+    build:
+      context: ./pipeline
+      dockerfile: Dockerfile
+    container_name: pipeline
+    environment:
+      - DATA_SOURCE_URL=http://data-source:3000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/analytics_db
+    depends_on:
+      - data-source
+      - postgres
+    networks:
+      - analytics-network
+
+  # Transformer (Python)
+  transformer:
+    build:
+      context: ./transformer
+      dockerfile: Dockerfile
+    container_name: transformer
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/analytics_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - analytics-network
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - REACT_APP_BACKEND1_URL=http://localhost:5000
+      - REACT_APP_BACKEND2_URL=http://localhost:8080
+    depends_on:
+      - backend1-auth
+      - backend2-api
+    networks:
+      - analytics-network
+
+networks:
+  analytics-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
+
