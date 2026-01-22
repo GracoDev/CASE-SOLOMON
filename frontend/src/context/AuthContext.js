@@ -8,18 +8,18 @@ export function AuthProvider({ children }) {
     return localStorage.getItem('jwt_token') || null;
   });
 
-  const login = (newToken) => {
-    setToken(newToken);
-    localStorage.setItem('jwt_token', newToken);
+  const login = (newToken) => { // função para login
+    setToken(newToken); // define o token
+    localStorage.setItem('jwt_token', newToken); // salva o token no localStorage
   };
 
-  const logout = () => {
-    setToken(null);
-    localStorage.removeItem('jwt_token');
+  const logout = () => { // função para logout
+    setToken(null); // define o token como null
+    localStorage.removeItem('jwt_token'); // remove o token do localStorage
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ token, login, logout }}> 
       {children}
     </AuthContext.Provider>
   );

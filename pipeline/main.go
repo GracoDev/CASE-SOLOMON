@@ -9,8 +9,7 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	_ "github.com/lib/pq"
+	//_ "github.com/lib/pq"
 )
 
 // Order representa a estrutura de um pedido recebido da API
@@ -32,13 +31,13 @@ type PipelineResponse struct {
 }
 
 var db *sql.DB
-var dataSourceURL string
-var transformerURL string
+var dataSourceURL string  // var global
+var transformerURL string // var global
 
 func main() {
 	fmt.Println("=== Pipeline de Dados iniciado ===")
 
-	// Obter URLs das variáveis de ambiente
+	// Obter URLs das variáveis de ambiente, "os" verifica se existe antes de ler
 	dataSourceURL = os.Getenv("DATA_SOURCE_URL")
 	if dataSourceURL == "" {
 		dataSourceURL = "http://data-source:3000"
@@ -49,14 +48,14 @@ func main() {
 		transformerURL = "http://transformer:8080/transform"
 	}
 
-	databaseURL := os.Getenv("DATABASE_URL")
+	databaseURL := os.Getenv("DATABASE_URL") // var local
 	if databaseURL == "" {
-		log.Fatal("DATABASE_URL não configurada")
+		log.Fatal("DATABASE_URL não configurada") // encerra o programa
 	}
 
-	// Adicionar sslmode=disable se não estiver presente
+	// desabilitar ssl, pois a conexão com o PostgreSQL local não usa SSL (comunicação não atravessa internet)
 	if !strings.Contains(databaseURL, "sslmode") {
-		if strings.Contains(databaseURL, "?") {
+		if strings.Contains(databaseURL, "?") { // ? para primeiro parâmetro, & parâmetros adicionais
 			databaseURL += "&sslmode=disable"
 		} else {
 			databaseURL += "?sslmode=disable"
@@ -69,30 +68,31 @@ func main() {
 
 	// Conectar ao PostgreSQL
 	var err error
-	db, err = sql.Open("postgres", databaseURL)
+	db, err = sql.Open("postgres", databaseURL) // sql.Open é uma função que abre uma conexão com o PostgreSQL
 	if err != nil {
 		log.Fatalf("Erro ao conectar ao PostgreSQL: %v", err)
 	}
 	defer db.Close()
 
 	// Testar conexão
-	if err := db.Ping(); err != nil {
+	if err := db.Ping(); err != nil { // ping = 0 significa erro
 		log.Fatalf("Erro ao fazer ping no PostgreSQL: %v", err)
 	}
 	fmt.Println("✅ Conectado ao PostgreSQL")
 
 	// Criar schema e tabela se não existirem
-	if err := setupDatabase(db); err != nil {
+	if err := setupDatabase(db); err != nil { // setupDatabase é uma função que cria o schema e a tabela se não existirem
 		log.Fatalf("Erro ao configurar banco de dados: %v", err)
 	}
 	fmt.Println("✅ Schema e tabela verificados/criados")
 
 	// Configurar rotas HTTP
-	http.HandleFunc("/health", healthHandler)
-	http.HandleFunc("/trigger", triggerHandler)
+	// handler é uma função que processa a requisição e escreve a resposta
+	http.HandleFunc("/health", healthHandler)   // registra handler para GET /health
+	http.HandleFunc("/trigger", triggerHandler) // registra handler para POST /trigger
 
 	// Iniciar servidor HTTP
-	port := os.Getenv("PORT")
+	port := os.Getenv("PORT") // port é a porta do servidor HTTP
 	if port == "" {
 		port = "8080"
 	}
@@ -102,22 +102,22 @@ func main() {
 	fmt.Println("  - GET  /health  - Health check")
 	fmt.Println("  - POST /trigger - Disparar ingestão de dados")
 
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil)) // inicia o servidor na porta ou encerra o programa se houver erro
 }
 
-func healthHandler(w http.ResponseWriter, r *http.Request) {
+func healthHandler(w http.ResponseWriter, r *http.Request) { // w (response writer) é o objeto que escreve a resposta, r (request) é o objeto que representa a requisição
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed) // se o método de requisição não é GET, retorna erro
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
+	w.Header().Set("Content-Type", "application/json")                // define o header como application/json, informando que o conteúdo é JSON
+	json.NewEncoder(w).Encode(map[string]string{"status": "healthy"}) // cria um encoder json que converte objeto Go em JSON e escreve em "w" a resposta "{"status": "healthy"}"
 }
 
-func triggerHandler(w http.ResponseWriter, r *http.Request) {
+func triggerHandler(w http.ResponseWriter, r *http.Request) { // função que dispara a execução do pipeline e escreve a resposta
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed) // se o método de requisição não é POST, retorna erro
 		return
 	}
 
@@ -127,15 +127,15 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 	inserted, total, err := runPipeline()
 
 	response := PipelineResponse{
-		Success:   err == nil,
+		Success:   err == nil, // sucess = true se err é nil
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
 	if err != nil {
 		response.Message = fmt.Sprintf("Erro ao executar pipeline: %v", err)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(response)
+		w.Header().Set("Content-Type", "application/json") // define o header como application/json, informando que o conteúdo é JSON
+		w.WriteHeader(http.StatusInternalServerError)      // escreve o status code 500 (Internal Server Error)
+		json.NewEncoder(w).Encode(response)                // cria um encoder json que converte objeto Go em JSON e escreve em "w" a resposta
 		return
 	}
 
@@ -147,27 +147,27 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func runPipeline() (int, int, error) {
+func runPipeline() (int, int, error) { // retorna 2 int e 1 error
 	// Buscar dados do Data Source
 	fmt.Println("\n📥 Buscando dados do Data Source...")
-	orders, err := fetchOrders(dataSourceURL)
+	orders, err := fetchOrders(dataSourceURL) // fetchOrders é uma função que busca os pedidos da API do Data Source
 	if err != nil {
 		return 0, 0, fmt.Errorf("erro ao buscar pedidos: %w", err)
 	}
-	fmt.Printf("✅ %d pedidos recebidos do Data Source\n", len(orders))
+	fmt.Printf("✅ %d pedidos recebidos do Data Source\n", len(orders)) // qtd de pedidos recebidos
 
 	// Inserir dados no banco
 	fmt.Println("\n💾 Inserindo dados no PostgreSQL...")
-	inserted, err := insertOrders(db, orders)
+	inserted, err := insertOrders(db, orders) // insertOrders é uma função que insere os pedidos no banco de dados
 	if err != nil {
 		return 0, len(orders), fmt.Errorf("erro ao inserir pedidos: %w", err)
 	}
-	fmt.Printf("✅ %d pedidos inseridos com sucesso\n", inserted)
+	fmt.Printf("✅ %d pedidos inseridos com sucesso\n", inserted) // qtd de pedidos inseridos
 
 	// Chamar transformer para agregar dados
 	if inserted > 0 {
 		fmt.Println("\n🔄 Chamando transformer para agregar dados...")
-		if err := callTransformer(transformerURL); err != nil {
+		if err := callTransformer(transformerURL); err != nil { // callTransformer é uma função que chama o serviço transformer via HTTP
 			log.Printf("⚠️  Erro ao chamar transformer: %v", err)
 			// Não falhar o pipeline se o transformer falhar
 		} else {
@@ -182,13 +182,13 @@ func runPipeline() (int, int, error) {
 // setupDatabase cria o schema raw_data e a tabela orders se não existirem
 func setupDatabase(db *sql.DB) error {
 	// Criar schema raw_data se não existir
-	_, err := db.Exec("CREATE SCHEMA IF NOT EXISTS raw_data")
+	_, err := db.Exec("CREATE SCHEMA IF NOT EXISTS raw_data") // db.Exec é uma função que executa uma consulta SQL
 	if err != nil {
 		return fmt.Errorf("erro ao criar schema: %w", err)
 	}
 
 	// Criar tabela raw_data.orders se não existir
-	createTableSQL := `
+	createTableSQL := ` 
 		CREATE TABLE IF NOT EXISTS raw_data.orders (
 			id SERIAL PRIMARY KEY,
 			order_id VARCHAR(255) NOT NULL UNIQUE,
@@ -200,7 +200,7 @@ func setupDatabase(db *sql.DB) error {
 		)
 	`
 
-	_, err = db.Exec(createTableSQL)
+	_, err = db.Exec(createTableSQL) // executa o SQL de criação da tabela
 	if err != nil {
 		return fmt.Errorf("erro ao criar tabela: %w", err)
 	}
@@ -214,7 +214,7 @@ func fetchOrders(url string) ([]Order, error) {
 		Timeout: 30 * time.Second,
 	}
 
-	resp, err := client.Get(url)
+	resp, err := client.Get(url) // faz uma requisição GET para a URL para obter os dados do Data Source
 	if err != nil {
 		return nil, fmt.Errorf("erro ao fazer requisição HTTP: %w", err)
 	}
@@ -224,8 +224,8 @@ func fetchOrders(url string) ([]Order, error) {
 		return nil, fmt.Errorf("status code não OK: %d", resp.StatusCode)
 	}
 
-	var orders []Order
-	if err := json.NewDecoder(resp.Body).Decode(&orders); err != nil {
+	var orders []Order                                                 // orders é um slice de Order. Order é uma ficha de pedido, e []Order é uma pasta com várias fichas
+	if err := json.NewDecoder(resp.Body).Decode(&orders); err != nil { // decodifica o JSON da resposta, passando de JSON para Go
 		return nil, fmt.Errorf("erro ao decodificar JSON: %w", err)
 	}
 
@@ -238,8 +238,8 @@ func insertOrders(db *sql.DB, orders []Order) (int, error) {
 		return 0, nil
 	}
 
-	// Preparar statement SQL para inserção
-	stmt, err := db.Prepare(`
+	// Preparar statement (stmt) SQL para inserção, cria um template SQL que será executado posteriormente com os valores passados
+	stmt, err := db.Prepare(` 
 		INSERT INTO raw_data.orders (order_id, created_at, status, value, payment_method)
 		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (order_id) DO NOTHING
@@ -252,14 +252,14 @@ func insertOrders(db *sql.DB, orders []Order) (int, error) {
 	inserted := 0
 	for _, order := range orders {
 		// Converter created_at de string para time.Time
-		createdAt, err := time.Parse(time.RFC3339, order.CreatedAt)
+		createdAt, err := time.Parse(time.RFC3339, order.CreatedAt) // converte a string para time.Time
 		if err != nil {
-			log.Printf("⚠️  Erro ao parsear created_at '%s': %v", order.CreatedAt, err)
+			log.Printf("⚠️  Erro ao parsear created_at '%s': %v", order.CreatedAt, err) // parsear é transformar texto bruto em dado estruturado
 			continue
 		}
 
 		// Inserir no banco
-		result, err := stmt.Exec(
+		result, err := stmt.Exec( // executa o statement preparado
 			order.OrderID,
 			createdAt,
 			order.Status,
@@ -271,7 +271,7 @@ func insertOrders(db *sql.DB, orders []Order) (int, error) {
 			continue
 		}
 
-		rowsAffected, _ := result.RowsAffected()
+		rowsAffected, _ := result.RowsAffected() // obtém o número de linhas afetadas pela execução do statement
 		if rowsAffected > 0 {
 			inserted++
 		}
@@ -286,7 +286,7 @@ func callTransformer(url string) error {
 		Timeout: 30 * time.Second,
 	}
 
-	resp, err := client.Post(url, "application/json", nil)
+	resp, err := client.Post(url, "application/json", nil) // faz uma requisição POST (pois executa transformação nos dados) para a URL
 	if err != nil {
 		return fmt.Errorf("erro ao fazer requisição HTTP: %w", err)
 	}

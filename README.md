@@ -8,7 +8,7 @@ Plataforma de analytics completa com pipeline de dados, backend e dashboard.
 - Git instalado
 - Portas disponíveis: 3000, 3001, 5000, 8080, 5432
 
-## 🚀 Como começar em um novo PC
+## 🚀 Como começar
 
 ### 1. Clonar o repositório
 
@@ -17,176 +17,107 @@ git clone <URL_DO_SEU_REPOSITORIO>
 cd CASE-SOLOMON
 ```
 
-### 2. Arquivos que precisam ser criados/baixados
-
-#### 📄 `orders.csv` (OBRIGATÓRIO)
-Este arquivo **NÃO** está no Git (por ser grande). Você precisa:
-
-- **Opção 1**: Baixar do repositório original do case
-- **Opção 2**: Criar manualmente na raiz do projeto com a estrutura:
-  ```
-  order_id;created_at;status;value;payment_method
-  20260120-001;2026-01-20T00:10:00Z;approved;199,90;credit_card
-  ...
-  ```
-
-**IMPORTANTE**: O arquivo `orders.csv` deve estar na raiz do projeto para o Docker montar corretamente.
-
-### 3. Subir os serviços
+### 2. Subir os serviços
 
 ```bash
 docker compose up --build -d
 ```
 
-### 4. Verificar se está tudo rodando
+### 3. Verificar se está tudo rodando
 
 ```bash
 docker compose ps
 ```
 
-Todos os 7 serviços devem estar com status "Up":
-- ✅ postgres
-- ✅ backend1-auth
-- ✅ backend2-api
-- ✅ data-source
-- ✅ pipeline
-- ✅ transformer
-- ✅ frontend
+Todos os 7 serviços devem estar com status "Up".
 
-## 🧪 Testar os serviços
+## 🎯 Como usar o sistema
+
+### 1. Acessar o Dashboard
+
+Abra seu navegador e acesse:
+
+```
+http://localhost:3001
+```
+
+### 2. Fazer Login
+
+**Credenciais padrão:**
+- **Usuário:** `admin`
+- **Senha:** `admin123`
+
+### 3. Sincronizar dados (IMPORTANTE!)
+
+Após fazer login, você verá o dashboard vazio. Para carregar os dados:
+
+1. Clique no botão **"🔄 Sincronizar Dados"** no topo da página
+2. Aguarde a mensagem de sucesso (pode levar alguns segundos)
+3. Os dados serão carregados automaticamente
+
+### 4. Explorar o Dashboard
+
+Após sincronizar, você verá:
+- **Cards de métricas**: Receitas e pedidos por status (Aprovado, Pendente, Cancelado)
+- **Gráfico de séries temporais**: Evolução das métricas ao longo do tempo
+- **Filtros**: Data inicial, data final e método de pagamento
+
+## 🌐 URLs dos Serviços
+
+### Frontend (Dashboard Principal)
+```
+http://localhost:3001
+```
+
+### Backend 1 (Auth)
+```
+http://localhost:5000
+http://localhost:5000/health
+```
+
+### Backend 2 (Query API)
+```
+http://localhost:8080
+http://localhost:8080/health
+```
 
 ### Data Source Server
-```bash
-# No navegador ou PowerShell:
-http://localhost:3000          # Retorna todos os pedidos
-http://localhost:3000/health  # Health check
+```
+http://localhost:3000
+http://localhost:3000/health
 ```
 
-### Outros serviços
-```bash
-http://localhost:5000   # Backend 1 (Auth)
-http://localhost:8080     # Backend 2 (Query API)
-http://localhost:3001    # Frontend
+### pgAdmin (Interface gráfica do PostgreSQL)
+```
+http://localhost:5050
 ```
 
-## 📁 Estrutura do Projeto
+**Credenciais pgAdmin:**
+- Email: `admin@admin.com`
+- Senha: `admin`
 
-```
-CASE-SOLOMON/
-├── docker-compose.yml       # Orquestração de todos os serviços
-├── orders.csv              # ⚠️ NÃO está no Git - precisa baixar/criar
-├── README.md               # Este arquivo
-│
-├── backend1-auth/          # Backend 1 - Autenticação e Trigger (Flask/Python)
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── app.py
-│
-├── backend2-api/           # Backend 2 - Query API (Go)
-│   ├── Dockerfile
-│   └── main.go
-│
-├── data-source/            # Servidor de Origem de Dados (Python)
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── server.py          # ✅ Implementado
-│
-├── pipeline/               # Pipeline de Dados (Go)
-│   ├── Dockerfile
-│   └── main.go
-│
-├── transformer/            # Serviço de Transformação (Python)
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── transform.py
-│
-├── frontend/               # Dashboard React
-│   ├── Dockerfile
-│   ├── package.json
-│   └── server.js
-│
-└── postgres/               # Scripts de inicialização do banco
-    └── init.sql
-```
+### Como visualizar os dados no pgAdmin
 
-## 📝 Arquivos ignorados pelo Git (.gitignore)
+1. **Conectar ao servidor PostgreSQL:**
+   - Clique com botão direito em "Servers" → "Register" → "Server"
+   - Na aba "General":
+     - **Name:** `PostgreSQL` (ou qualquer nome)
+   - Na aba "Connection":
+     - **Host name/address:** `postgres`
+     - **Port:** `5432`
+     - **Maintenance database:** `analytics_db`
+     - **Username:** `postgres`
+     - **Password:** `postgres`
+   - Clique em "Save"
 
-Estes arquivos **NÃO** são salvos no Git (e não precisam ser):
+2. **Visualizar dados brutos (raw_data):**
+   - Expanda: `Servers` → `PostgreSQL` → `Databases` → `analytics_db` → `Schemas` → `raw_data` → `Tables` → `orders`
+   - Clique com botão direito em `orders` → "View/Edit Data" → "All Rows"
+   - Você verá todos os pedidos inseridos pelo pipeline
 
-- `node_modules/` - Dependências do Node.js (instaladas automaticamente)
-- `__pycache__/`, `*.pyc` - Cache do Python (gerado automaticamente)
-- `postgres_data/` - Dados do PostgreSQL (volume do Docker, recriado automaticamente)
-- `*.ps1` - Scripts temporários do PowerShell
-- `*.log` - Arquivos de log
+3. **Visualizar dados agregados (aggregated):**
+   - Expanda: `Servers` → `PostgreSQL` → `Databases` → `analytics_db` → `Schemas` → `aggregated` → `Tables` → `daily_metrics`
+   - Clique com botão direito em `daily_metrics` → "View/Edit Data" → "All Rows"
+   - Você verá as métricas agregadas por dia, status e método de pagamento
 
-**Todos esses arquivos são gerados automaticamente quando você roda o projeto!**
-
-## 🔧 Comandos úteis
-
-### Ver logs de um serviço
-```bash
-docker compose logs data-source
-docker compose logs -f data-source  # Seguir logs em tempo real
-```
-
-### Parar todos os serviços
-```bash
-docker compose down
-```
-
-### Reconstruir um serviço específico
-```bash
-docker compose build data-source
-docker compose up -d data-source
-```
-
-### Ver status de todos os containers
-```bash
-docker compose ps
-```
-
-## ✅ Status da Implementação
-
-- [x] **Estrutura de pastas** - Criada
-- [x] **docker-compose.yml** - Configurado com todos os serviços
-- [x] **Data Source Server** - ✅ Implementado e testado
-- [x] **Pipeline** - ✅ Implementado (busca dados e insere no PostgreSQL)
-- [x] **Transformer** - ✅ Implementado (agrega dados e expõe API HTTP)
-- [x] **Backend 1 (Auth)** - ✅ Implementado (JWT, login, sync)
-- [x] **Backend 2 (Query API)** - ✅ Implementado (métricas, time-series, validação JWT)
-- [x] **Frontend** - ✅ Implementado (Dashboard React com gráficos e filtros)
-- [x] **PostgreSQL** - ✅ Schemas e tabelas criados automaticamente
-
-## 🐛 Troubleshooting
-
-### Erro: "orders.csv não encontrado"
-- Certifique-se de que o arquivo `orders.csv` está na raiz do projeto
-- Verifique se o arquivo tem conteúdo (não está vazio)
-
-### Erro: "Port already in use"
-- Pare outros serviços que usam as portas 3000, 3001, 5000, 8080, 5432
-- Ou altere as portas no `docker-compose.yml`
-
-### Container não inicia
-```bash
-docker compose logs <nome-do-servico>
-```
-
-## 🔐 Segurança
-
-- **Backend 1**: Autenticação JWT implementada
-- **Backend 2**: Validação de token JWT obrigatória para todas as rotas de API
-- **Credenciais padrão**: `admin` / `admin123` (altere em produção!)
-
-## 🔄 Fluxo de Dados
-
-1. **Data Source** → Serve dados do `orders.csv`
-2. **Pipeline** → Busca dados do Data Source e insere em `raw_data.orders`
-3. **Transformer** → Agrega dados de `raw_data.orders` para `aggregated.daily_metrics` (chamado automaticamente pelo pipeline)
-4. **Backend 2** → Consulta `aggregated.daily_metrics` e retorna métricas para o frontend
-
-## 📞 Contato
-
-Para dúvidas sobre o case, consulte a documentação original.
-
-
+**Nota:** Os dados só aparecerão após executar a sincronização no dashboard (botão "🔄 Sincronizar Dados").

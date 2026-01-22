@@ -23,7 +23,7 @@ def read_orders():
                 'created_at': row['created_at'],
                 'status': row['status'],
                 'value': float(row['value'].replace(',', '.')),  # Converte vírgula para ponto
-                'payment_method': row['payment_method'].replace('boleto', 'billet')  # Mapeia boleto para billet
+                'payment_method': row['payment_method']
             }
             orders.append(order)
     

@@ -1,15 +1,15 @@
 import React from 'react';
 import './Filters.css';
 
-function Filters({ filters, onFiltersChange, onApplyFilters, onClearFilters }) {
-  const handleChange = (field, value) => {
+function Filters({ filters, onFiltersChange, onApplyFilters, onClearFilters }) { // componente Filters que exibe os filtros
+  const handleChange = (field, value) => { // função para mudar o valor de um filtro
     onFiltersChange({
       ...filters,
       [field]: value,
     });
   };
 
-  const handleClearFilters = () => {
+  const handleClearFilters = () => { // função para limpar os filtros
     if (onClearFilters) {
       onClearFilters();
     } else {
@@ -18,7 +18,7 @@ function Filters({ filters, onFiltersChange, onApplyFilters, onClearFilters }) {
     }
   };
 
-  return (
+  return ( // retorna o componente Filters que exibe os filtros
     <div className="filters">
       <h2>Filtros</h2>
       <div className="filters-grid">

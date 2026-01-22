@@ -8,29 +8,29 @@ import Filters from './Filters';
 import SyncButton from './SyncButton';
 import './Dashboard.css';
 
-function Dashboard() {
-  const { token, logout } = useAuth();
+function Dashboard() { // componente Dashboard que exibe os dados e filtros
+  const { token, logout } = useAuth(); // obtém o token e a função logout do contexto de autenticação
   const navigate = useNavigate();
-  const [metrics, setMetrics] = useState(null);
-  const [timeSeries, setTimeSeries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [filters, setFilters] = useState({
+  const [metrics, setMetrics] = useState(null); // estado para os dados das métricas
+  const [timeSeries, setTimeSeries] = useState([]); // estado para os dados da série temporal
+  const [loading, setLoading] = useState(true); // estado para o loading
+  const [error, setError] = useState(''); // estado para o erro
+  const [filters, setFilters] = useState({ // estado para os filtros
     startDate: '',
     endDate: '',
     paymentMethod: '',
   });
-  const [tempFilters, setTempFilters] = useState({
+  const [tempFilters, setTempFilters] = useState({ // estado para os filtros temporários
     startDate: '',
     endDate: '',
     paymentMethod: '',
   });
 
-  const loadData = async (filtersToUse = filters) => {
+  const loadData = async (filtersToUse = filters) => { // função para carregar os dados
     setLoading(true);
     setError('');
     try {
-      const [metricsData, timeSeriesData] = await Promise.all([
+      const [metricsData, timeSeriesData] = await Promise.all([ // faz uma requisição GET para o endpoint /api/metrics e /api/metrics/time-series do Backend 2
         backend2API.getMetrics(token, filtersToUse),
         backend2API.getTimeSeries(token, filtersToUse),
       ]);
@@ -51,24 +51,24 @@ function Dashboard() {
     loadData();
   }, [token]);
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = () => { // função para aplicar os filtros
     setFilters({ ...tempFilters });
     loadData(tempFilters);
   };
 
-  const handleClearFilters = () => {
+  const handleClearFilters = () => { // função para limpar os filtros
     const clearedFilters = { startDate: '', endDate: '', paymentMethod: '' };
     setTempFilters(clearedFilters);
     setFilters(clearedFilters);
     loadData(clearedFilters);
   };
 
-  const handleLogout = () => {
+  const handleLogout = () => { // função para fazer logout
     logout();
     navigate('/login');
   };
 
-  const handleSync = async () => {
+  const handleSync = async () => { // função para sincronizar os dados
     try {
       await backend1API.sync(token);
       alert('Sincronização iniciada com sucesso!');
@@ -83,7 +83,7 @@ function Dashboard() {
     }
   };
 
-  return (
+  return ( // retorna o componente Dashboard que exibe os dados e filtros 
     <div className="dashboard">
       <header className="dashboard-header">
         <h1>Analytics Dashboard</h1>
