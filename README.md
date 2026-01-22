@@ -1,7 +1,3 @@
-# Mini Analytics Platform - Case Solomon
-
-Plataforma de analytics completa com pipeline de dados, backend e dashboard.
-
 ## 📋 Requisitos
 
 - Docker Desktop instalado e rodando
@@ -13,7 +9,7 @@ Plataforma de analytics completa com pipeline de dados, backend e dashboard.
 ### 1. Clonar o repositório
 
 ```bash
-git clone <URL_DO_SEU_REPOSITORIO>
+git clone <https://github.com/GracoDev/CASE-SOLOMON.git>
 cd CASE-SOLOMON
 ```
 
@@ -47,12 +43,12 @@ http://localhost:3001
 - **Usuário:** `admin`
 - **Senha:** `admin123`
 
-### 3. Sincronizar dados (IMPORTANTE!)
+### 3. Sincronizar dados
 
 Após fazer login, você verá o dashboard vazio. Para carregar os dados:
 
 1. Clique no botão **"🔄 Sincronizar Dados"** no topo da página
-2. Aguarde a mensagem de sucesso (pode levar alguns segundos)
+2. Aguarde a mensagem de sucesso
 3. Os dados serão carregados automaticamente
 
 ### 4. Explorar o Dashboard

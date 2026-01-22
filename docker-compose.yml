@@ -1,5 +1,6 @@
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database 
+  # Esta seção é responsável por criar o banco de dados PostgreSQL e inicializar o schema e as tabelas
   postgres:
     image: postgres:15-alpine
     container_name: postgres
@@ -21,6 +22,7 @@ services:
       retries: 5
 
   # Backend 1 - Auth & Trigger (Flask/Python)
+  # Esta seção é responsável por criar o backend 1 que é responsável por autenticar o usuário e disparar o pipeline
   backend1-auth:
     build:
       context: ./backend1-auth
@@ -38,6 +40,7 @@ services:
       - analytics-network
 
   # Backend 2 - Query API (Go)
+  # Esta seção é responsável por criar o backend 2 que é responsável por consultar o banco de dados PostgreSQL e retornar os dados
   backend2-api:
     build:
       context: ./backend2-api
@@ -55,6 +58,7 @@ services:
       - analytics-network
 
   # Data Source Server (Python)
+  # Esta seção é responsável por criar o data source server que é responsável por servir o arquivo CSV
   data-source:
     build:
       context: ./data-source
@@ -68,6 +72,7 @@ services:
       - analytics-network
 
   # Pipeline (Go)
+  # Esta seção é responsável por criar o pipeline que é responsável por ingerir os dados do data source server e transformar os dados
   pipeline:
     build:
       context: ./pipeline
@@ -88,6 +93,7 @@ services:
       - analytics-network
 
   # Transformer (Python)
+  # Esta seção é responsável por criar o transformer que é responsável por transformar os dados do pipeline e salvar no banco de dados
   transformer:
     build:
       context: ./transformer
@@ -105,6 +111,7 @@ services:
       - analytics-network
 
   # Frontend (React)
+  # Esta seção é responsável por criar o frontend que é responsável por exibir os dados do backend 2
   frontend:
     build:
       context: ./frontend
@@ -122,6 +129,7 @@ services:
       - analytics-network
 
   # pgAdmin - Interface gráfica para PostgreSQL
+  # Esta seção é responsável por criar o pgAdmin que é responsável por exibir a interface gráfica do PostgreSQL
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin

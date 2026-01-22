@@ -17,4 +17,7 @@ postgres_data/
 # Arquivos temporários
 *.ps1
 
+# Documentação de estudo (não enviar para o repositório)
+documentacao-estudo.md
+
 
