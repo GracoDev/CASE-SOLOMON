@@ -12,20 +12,20 @@ function PrivateRoute({ children }) { // verifica se o usuário está autenticad
 
 function App() { // renderiza a aplicação
   return (
-    <AuthProvider> // gerencia o estado de autenticação
+    <AuthProvider>  
       <Router>
         <div className="App">
           <Routes>
-            <Route path="/login" element={<Login />} /> // rota para a página de login
+            <Route path="/login" element={<Login />} /> 
             <Route
               path="/dashboard"
               element={
-                <PrivateRoute> // protege dashboard, redireciona para login se não estiver autenticado
+                <PrivateRoute> 
                   <Dashboard />
                 </PrivateRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" />} /> // rota para a página de dashboard
+            <Route path="/" element={<Navigate to="/dashboard" />} /> 
           </Routes>
         </div>
       </Router>
