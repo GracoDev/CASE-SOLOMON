@@ -40,7 +40,7 @@ def verify_token(f): # decorator para verificar o token JWT
         token = None # define o token como None (localmente)
         
         # Verificar se o token está no header Authorization
-        if 'Authorization' in request.headers: # verifica se o token está no header Authorization
+        if 'Authorization' in request.headers: # verifica se o token está no header Authorization, que é o header que contém o token JWT. header é o cabeçalho da requisição HTTP.
             auth_header = request.headers['Authorization'] # pega o token do header Authorization
             try:
                 # Formato esperado do header Authorization: "Bearer <token>", bearer indica o formato do token
@@ -53,14 +53,14 @@ def verify_token(f): # decorator para verificar o token JWT
         
         try:
             # Decodificar e verificar o token
-            data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM]) # decodifica o token para obter os dados do usuário e validade do token
+            data = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM]) # decodifica o token ( de string JWT para dicionário Python) para verificar a validade do token
             request.current_user = data['username'] # armazena o username do usuário
         except jwt.ExpiredSignatureError: # se o token expirou
             return jsonify({'error': 'Token expirado'}), 401
         except jwt.InvalidTokenError: # se o token é inválido
             return jsonify({'error': 'Token inválido'}), 401
         
-        return f(*args, **kwargs) # se o token for válido, chama a função original
+        return f(*args, **kwargs) # se o token for válido, chama a função original (f)
     
     return decorated # retorna a função decorada
 
@@ -83,22 +83,22 @@ def health():
 def login():
     """Endpoint de login - retorna token JWT"""
     try:
-        data = request.get_json() # pega os dados do login
+        data = request.get_json() # pega os dados do login (username, password) do corpo da requisição HTTP. já converte automaticamente para dicionário Python
         
         if not data: # se os dados não forem fornecidos 
             return jsonify({'error': 'Dados não fornecidos'}), 400
         
-        username = data.get('username')
-        password = data.get('password')
+        username = data.get('username') # pega o username do dicionário Python
+        password = data.get('password') # pega o password do dicionário Python
         
         # Verificar credenciais
         if username != FIXED_USERNAME or password != FIXED_PASSWORD: # se o username ou password não forem válidos
             return jsonify({'error': 'Credenciais inválidas'}), 401
         
-        # Gerar token JWT
+        # Gerar token JWT se as credenciais forem válidas 
         token = generate_token(username)
         
-        return jsonify({
+        return jsonify({ # retorna o token JWT, username e validade do token em JSON (converte automaticamente para JSON)
             'token': token,
             'username': username,
             'expires_in_hours': JWT_EXPIRATION_HOURS
@@ -108,13 +108,13 @@ def login():
         return jsonify({'error': f'Erro ao processar login: {str(e)}'}), 500
 
 
-@app.route('/sync', methods=['POST']) # rota post para disparar o pipeline de ingestão
-@verify_token # verifica o token JWT
+@app.route('/sync', methods=['POST']) # rota post para disparar o pipeline de ingestão de dados
+@verify_token # sempre que houver uma requisição POST para a rota /sync, essa função será chaamda para verificar o token JWT
 def sync(): # função que dispara o pipeline de ingestão (sincronização)
     """Endpoint protegido para disparar o pipeline de ingestão"""
     try:
         # Fazer chamada HTTP para o pipeline
-        response = requests.post( # faz uma requisição POST para o pipeline
+        response = requests.post( # faz uma requisição POST para o acessar o endpoint POST /trigger do pipeline para realizar a ingestão de dados
             PIPELINE_URL,
             timeout=30  # Timeout de 30 segundos
         ) # faz uma requisição POST para o pipeline

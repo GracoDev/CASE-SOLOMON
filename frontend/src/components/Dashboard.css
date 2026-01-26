@@ -67,3 +67,50 @@
   color: var(--text-gray);
   font-weight: 500;
 }
+
+.chart-section {
+  margin-top: 30px;
+}
+
+.chart-controls {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.chart-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: var(--text-gray);
+  font-size: 0.95em;
+}
+
+.chart-mode-select {
+  padding: 8px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.95em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-gray);
+}
+
+.chart-mode-select:hover {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+.chart-mode-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 212, 126, 0.1);
+}

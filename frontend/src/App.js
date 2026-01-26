@@ -5,27 +5,27 @@ import Dashboard from './components/Dashboard';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 
-function PrivateRoute({ children }) {
+function PrivateRoute({ children }) { // verifica se o usuário está autenticado
   const { token } = useAuth();
   return token ? children : <Navigate to="/login" />;
 }
 
-function App() {
+function App() { // renderiza a aplicação
   return (
-    <AuthProvider>
+    <AuthProvider> // gerencia o estado de autenticação
       <Router>
         <div className="App">
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} /> // rota para a página de login
             <Route
               path="/dashboard"
               element={
-                <PrivateRoute>
+                <PrivateRoute> // protege dashboard, redireciona para login se não estiver autenticado
                   <Dashboard />
                 </PrivateRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/" element={<Navigate to="/dashboard" />} /> // rota para a página de dashboard
           </Routes>
         </div>
       </Router>
@@ -34,4 +34,7 @@ function App() {
 }
 
 export default App;
+
+
+
 

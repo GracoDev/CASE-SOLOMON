@@ -6,14 +6,14 @@ function MetricsCards({ metrics }) {
 
   const { financial_metrics, operational_metrics } = metrics;
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
+  const formatCurrency = (value) => { // função para formatar o valor em reais
+    return new Intl.NumberFormat('pt-BR', { // cria um objeto Intl.NumberFormat para formatar o valor em reais
+      style: 'currency', // estilo de moeda
+      currency: 'BRL', // moeda
+    }).format(value); // formata o valor em reais
   };
 
-  return (
+  return ( // retorna o componente MetricsCards que exibe as métricas financeiras e operacionais
     <div className="metrics-cards">
       <div className="metrics-section">
         <h2>Métricas Financeiras</h2>
@@ -55,4 +55,7 @@ function MetricsCards({ metrics }) {
 }
 
 export default MetricsCards;
+
+
+
 

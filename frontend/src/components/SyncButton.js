@@ -4,10 +4,10 @@ import './SyncButton.css';
 function SyncButton({ onSync }) {
   const [loading, setLoading] = useState(false);
 
-  const handleClick = async () => {
-    setLoading(true);
+  const handleClick = async () => { // função para sincronizar os dados, chamada quando o botão é clicado
+    setLoading(true); // inicia o loading
     try {
-      await onSync();
+      await onSync(); // faz uma requisição POST para o endpoint /sync do Backend 1
     } finally {
       setLoading(false);
     }
@@ -17,7 +17,7 @@ function SyncButton({ onSync }) {
     <button
       onClick={handleClick}
       disabled={loading}
-      className="sync-button"
+      className="sync-button" // mesmo do arquivo CSS
     >
       {loading ? 'Sincronizando...' : '🔄 Sincronizar Dados'}
     </button>
@@ -25,4 +25,7 @@ function SyncButton({ onSync }) {
 }
 
 export default SyncButton;
+
+
+
 

@@ -65,11 +65,11 @@ func main() {
 		log.Println("⚠️  JWT_SECRET não configurada, usando valor padrão")
 	}
 
-	// Configurar rotas
-	http.HandleFunc("/", corsMiddleware(helloHandler))
+	// Configurar rotas para expor endpoints
+	http.HandleFunc("/", corsMiddleware(helloHandler)) // todas são protegidas pelo CORS
 	http.HandleFunc("/health", corsMiddleware(healthHandler))
-	http.HandleFunc("/api/metrics", corsMiddleware(verifyTokenMiddleware(metricsHandler)))
-	http.HandleFunc("/api/metrics/time-series", corsMiddleware(verifyTokenMiddleware(timeSeriesHandler)))
+	http.HandleFunc("/api/metrics", corsMiddleware(verifyTokenMiddleware(metricsHandler)))                // métricas são protegidas pelo JWT
+	http.HandleFunc("/api/metrics/time-series", corsMiddleware(verifyTokenMiddleware(timeSeriesHandler))) // séries temporais também
 
 	fmt.Println("Backend 2 API listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -114,7 +114,7 @@ func verifyTokenMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		// Verificar e decodificar o token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) { // decodifica o token para obter os dados do usuário e validade do token
-			// Verificar algoritmo
+			// Verificar algoritmo de assinatura do token
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok { // se o algoritmo de assinatura não for HMAC
 				return nil, fmt.Errorf("método de assinatura inesperado: %v", token.Header["alg"]) // retorna erro
 			}
@@ -187,7 +187,7 @@ func metricsHandler(w http.ResponseWriter, r *http.Request) { // define o handle
 	}
 
 	// Obter parâmetros de query
-	startDate := r.URL.Query().Get("start_date")         // pega o valor do parâmetro start_date
+	startDate := r.URL.Query().Get("start_date")         // pega o valor do parâmetro start_date da URL
 	endDate := r.URL.Query().Get("end_date")             // pega o valor do parâmetro end_date
 	paymentMethod := r.URL.Query().Get("payment_method") // pega o valor do parâmetro payment_method
 
@@ -277,7 +277,7 @@ func metricsHandler(w http.ResponseWriter, r *http.Request) { // define o handle
 	}
 
 	w.Header().Set("Content-Type", "application/json") // define o header content-type como json
-	json.NewEncoder(w).Encode(metrics)                 // codifica as métricas em json e escreve na resposta
+	json.NewEncoder(w).Encode(metrics)                 // codifica as métricas em json e escreve na resposta, que é enviada para o frontend
 }
 
 // timeSeriesHandler retorna séries temporais para gráficos

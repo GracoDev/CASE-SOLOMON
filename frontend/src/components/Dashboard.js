@@ -11,11 +11,11 @@ import './Dashboard.css';
 function Dashboard() { // componente Dashboard que exibe os dados e filtros
   const { token, logout } = useAuth(); // obtém o token e a função logout do contexto de autenticação
   const navigate = useNavigate();
-  const [metrics, setMetrics] = useState(null); // estado para os dados das métricas
-  const [timeSeries, setTimeSeries] = useState([]); // estado para os dados da série temporal
-  const [loading, setLoading] = useState(true); // estado para o loading
-  const [error, setError] = useState(''); // estado para o erro
-  const [filters, setFilters] = useState({ // estado para os filtros
+  const [metrics, setMetrics] = useState(null); 
+  const [timeSeries, setTimeSeries] = useState([]);
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState(''); 
+  const [filters, setFilters] = useState({ 
     startDate: '',
     endDate: '',
     paymentMethod: '',
@@ -25,6 +25,7 @@ function Dashboard() { // componente Dashboard que exibe os dados e filtros
     endDate: '',
     paymentMethod: '',
   });
+  const [chartViewMode, setChartViewMode] = useState('revenue'); // estado inicial do modo de visualização do gráfico ('revenue' ou 'orders') nesse caso 'revenue'
 
   const loadData = async (filtersToUse = filters) => { // função para carregar os dados
     setLoading(true);
@@ -68,14 +69,14 @@ function Dashboard() { // componente Dashboard que exibe os dados e filtros
     navigate('/login');
   };
 
-  const handleSync = async () => { // função para sincronizar os dados
+  const handleSync = async () => { // função para sincronizar os dados. acessa o endpoint POST /sync do Backend 1 e inicia a sincronização
     try {
-      await backend1API.sync(token);
+      await backend1API.sync(token); 
       alert('Sincronização iniciada com sucesso!');
       // Recarregar dados após sincronização (usando filtros atuais)
       setTimeout(() => {
         loadData(filters);
-      }, 2000);
+      }, 2000); // espera 2 segundos após a sincronização para carregar os dados novamente
     } catch (err) {
       alert(
         err.response?.data?.error || 'Erro ao sincronizar dados. Tente novamente.'
@@ -109,9 +110,24 @@ function Dashboard() { // componente Dashboard que exibe os dados e filtros
           <div className="loading">Carregando dados...</div>
         ) : (
           <>
-            {metrics && <MetricsCards metrics={metrics} />}
+            {metrics && <MetricsCards metrics={metrics} />} // passa os dados das métricas para o componente MetricsCards
             {timeSeries && timeSeries.length > 0 && (
-              <RevenueChart data={timeSeries} />
+              <div className="chart-section">
+                <div className="chart-controls">
+                  <label className="chart-view-toggle">
+                    <span>Visualizar por:</span>
+                    <select 
+                      value={chartViewMode} 
+                      onChange={(e) => setChartViewMode(e.target.value)}
+                      className="chart-mode-select"
+                    >
+                      <option value="revenue">Receita</option>
+                      <option value="orders">Número de Pedidos</option>
+                    </select>
+                  </label>
+                </div>
+                <RevenueChart data={timeSeries} viewMode={chartViewMode} /> // passa os dados da série temporal para o componente RevenueChart
+              </div>
             )}
           </>
         )}

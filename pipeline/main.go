@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"time"
+
 	_ "github.com/lib/pq"
 )
 
@@ -68,14 +69,14 @@ func main() {
 
 	// Conectar ao PostgreSQL
 	var err error
-	db, err = sql.Open("postgres", databaseURL) // sql.Open é uma função que abre uma conexão com o PostgreSQL
+	db, err = sql.Open("postgres", databaseURL) // sql.Open é uma função que abre uma conexão com o PostgreSQL (sem API, conexão direta via driver de banco de dados)
 	if err != nil {
 		log.Fatalf("Erro ao conectar ao PostgreSQL: %v", err)
 	}
 	defer db.Close()
 
 	// Testar conexão
-	if err := db.Ping(); err != nil { // ping = 0 significa erro
+	if err := db.Ping(); err != nil { // ping != 0 significa erro
 		log.Fatalf("Erro ao fazer ping no PostgreSQL: %v", err)
 	}
 	fmt.Println("✅ Conectado ao PostgreSQL")
@@ -124,18 +125,18 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) { // função que di
 	fmt.Println("\n=== Pipeline disparado via HTTP ===")
 
 	// Executar pipeline
-	inserted, total, err := runPipeline()
+	inserted, total, err := runPipeline() // executa o processo de ingestão de dados no PostgreSQL
 
-	response := PipelineResponse{
+	response := PipelineResponse{ //
 		Success:   err == nil, // sucess = true se err é nil
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
 
 	if err != nil {
 		response.Message = fmt.Sprintf("Erro ao executar pipeline: %v", err)
-		w.Header().Set("Content-Type", "application/json") // define o header como application/json, informando que o conteúdo é JSON
+		w.Header().Set("Content-Type", "application/json") // informa que a resposta será JSIN, definindo o header como application/json
 		w.WriteHeader(http.StatusInternalServerError)      // escreve o status code 500 (Internal Server Error)
-		json.NewEncoder(w).Encode(response)                // cria um encoder json que converte objeto Go em JSON e escreve em "w" a resposta
+		json.NewEncoder(w).Encode(response)                // cria um encoder json que converte objeto "response" de Go para JSON e escreve em "w" a resposta
 		return
 	}
 
@@ -143,8 +144,8 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) { // função que di
 	response.Inserted = inserted
 	response.Total = total
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	w.Header().Set("Content-Type", "application/json") // informa que a resposta será JSON
+	json.NewEncoder(w).Encode(response)                // converte objeto para JSON
 }
 
 func runPipeline() (int, int, error) { // retorna 2 int e 1 error
@@ -220,7 +221,7 @@ func fetchOrders(url string) ([]Order, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK { // status ok = 200
 		return nil, fmt.Errorf("status code não OK: %d", resp.StatusCode)
 	}
 
@@ -229,7 +230,7 @@ func fetchOrders(url string) ([]Order, error) {
 		return nil, fmt.Errorf("erro ao decodificar JSON: %w", err)
 	}
 
-	return orders, nil
+	return orders, nil // retorna os pedidos em formato Go ou erro se houver
 }
 
 // insertOrders insere os pedidos no banco de dados
@@ -250,7 +251,7 @@ func insertOrders(db *sql.DB, orders []Order) (int, error) {
 	defer stmt.Close()
 
 	inserted := 0
-	for _, order := range orders {
+	for _, order := range orders { // para cada pedido, executa o statement preparado
 		// Converter created_at de string para time.Time
 		createdAt, err := time.Parse(time.RFC3339, order.CreatedAt) // converte a string para time.Time
 		if err != nil {
@@ -259,7 +260,7 @@ func insertOrders(db *sql.DB, orders []Order) (int, error) {
 		}
 
 		// Inserir no banco
-		result, err := stmt.Exec( // executa o statement preparado
+		result, err := stmt.Exec( // executa o statement preparado, ou seja, preenche os valores do template SQL com os valores do pedido
 			order.OrderID,
 			createdAt,
 			order.Status,
@@ -282,7 +283,7 @@ func insertOrders(db *sql.DB, orders []Order) (int, error) {
 
 // callTransformer chama o serviço transformer via HTTP
 func callTransformer(url string) error {
-	client := &http.Client{
+	client := &http.Client{ // acessa o endpoint do transformer via HTTP
 		Timeout: 30 * time.Second,
 	}
 

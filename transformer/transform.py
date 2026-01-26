@@ -37,7 +37,7 @@ def setup_aggregated_schema(conn):
                 total_orders INTEGER NOT NULL,
                 total_value NUMERIC(10, 2) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(date, status, payment_method)
+                UNIQUE(date, status, payment_method)  -- garante que não há duplicidade de dados na tabela aggregated.daily_metrics
             )
         """
         cur.execute(create_table_sql) # executa o SQL de criação da tabela
@@ -48,9 +48,9 @@ def setup_aggregated_schema(conn):
 def aggregate_data(conn):
     """Lê dados de raw_data.orders e agrega por data, status e payment_method"""
     with conn.cursor(cursor_factory=RealDictCursor) as cur: # retorna linhas como dicionários, para o acesso ser dado por nome de coluna, em vez de índice
-        # Query de agregação
+        # Query de agregação, query é uma consulta SQL que retorna os dados agregados por data, status e payment_method, é uma query de seleção (SELECT)
         aggregation_sql = """
-            SELECT 
+            SELECT -- seleciona quais colunas serão retornadas
                 DATE(created_at) as date,
                 status,
                 payment_method,
@@ -73,8 +73,8 @@ def insert_aggregated_data(conn, aggregated_data): # recebe a conexão e os dado
         print("⚠️  Nenhum dado para inserir")
         return 0
     
-    with conn.cursor() as cur:
-        # Preparar statement de inserção, insere os dados agregados na tabela aggregated.daily_metrics
+    with conn.cursor() as cur: # cursor é um objeto que permite executar consultas SQL
+        # Preparar statement de inserção, insere os dados agregados na tabela aggregated.daily_metrics.
         insert_sql = """
             INSERT INTO aggregated.daily_metrics
                 (date, status, payment_method, total_orders, total_value)
@@ -87,7 +87,7 @@ def insert_aggregated_data(conn, aggregated_data): # recebe a conexão e os dado
         """
         
         inserted = 0
-        for row in aggregated_data: # para cada linha na lista de dados agregados, insere na tabela aggregated.daily_metrics
+        for row in aggregated_data: # para cada linha na lista de dados agregados, insere na tabela aggregated.daily_metrics; Executa o statement preparado para cada linha
             try:
                 cur.execute(
                     insert_sql, # insere os valores nos placeholders
@@ -104,7 +104,7 @@ def insert_aggregated_data(conn, aggregated_data): # recebe a conexão e os dado
                 print(f"⚠️  Erro ao inserir linha: {e}")
                 continue
         
-        conn.commit() # confirma a transação, ou seja, insere as linhas na tabela aggregated.daily_metrics
+        conn.commit() # confirma a transação, ou seja, insere as linhas na tabela aggregated.daily_metrics. antes disso, ficam como pendentes
         return inserted # retorna o número de linhas inseridas
 
 def run_transformation():
@@ -132,7 +132,7 @@ def run_transformation():
         conn.close()
         
         print("\n=== Transformação concluída com sucesso ===")
-        return inserted
+        return inserted # retorna o número de linhas inseridas
         
     except Exception as e:
         print(f"\n❌ Erro: {e}")

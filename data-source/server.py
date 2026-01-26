@@ -2,21 +2,21 @@ from flask import Flask, jsonify
 import csv
 import os
 
-app = Flask(__name__)
+app = Flask(__name__) # Inicializa o Flask
 
-CSV_FILE = '/app/orders.csv'
+CSV_FILE = '/app/orders.csv' # Caminho do arquivo CSV
 
-def read_orders():
+def read_orders(): # Função que lê o arquivo CSV e retorna os dados como lista de dicionários
     """Lê o arquivo CSV e retorna os dados como lista de dicionários"""
     orders = []
     
-    if not os.path.exists(CSV_FILE):
+    if not os.path.exists(CSV_FILE): # se o arquivo não existe, retorna uma lista vazia
         return orders
     
     with open(CSV_FILE, 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file, delimiter=';')
         
-        for row in reader:
+        for row in reader: # para cada linha do arquivo CSV, cria um dicionário com os dados da linha
             # Normaliza os dados conforme necessário
             order = {
                 'order_id': row['order_id'],
@@ -29,12 +29,12 @@ def read_orders():
     
     return orders
 
-@app.route('/')
-def get_orders():
+@app.route('/') # Endpoint GET que retorna todos os pedidos do CSV
+def get_orders(): # Função que retorna todos os pedidos do CSV
     """Endpoint GET que retorna todos os pedidos do CSV"""
     try:
-        orders = read_orders()
-        return jsonify(orders), 200
+        orders = read_orders() # chama a função read_orders para ler o arquivo CSV
+        return jsonify(orders), 200 # retorna os dados como JSON
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
