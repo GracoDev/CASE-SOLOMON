@@ -1,0 +1,26 @@
+app = "case-solomon-frontend"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+  build_args = []
+
+[env]
+  # URLs dos backends - você precisará atualizar com as URLs reais após fazer deploy dos backends
+  # Por enquanto, deixe como está ou use variáveis de ambiente do Fly.io
+  REACT_APP_BACKEND1_URL = "http://localhost:5000"
+  REACT_APP_BACKEND2_URL = "http://localhost:8080"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
