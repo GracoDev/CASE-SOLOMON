@@ -1,26 +1,23 @@
-app = "case-solomon-frontend"
-primary_region = "gru"
+# fly.toml app configuration file generated for case-solomon on 2026-01-29T17:31:14Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'case-solomon'
+primary_region = 'ams'
 
 [build]
-  dockerfile = "Dockerfile"
-  build_args = []
-
-[env]
-  # URLs dos backends - você precisará atualizar com as URLs reais após fazer deploy dos backends
-  # Por enquanto, deixe como está ou use variáveis de ambiente do Fly.io
-  REACT_APP_BACKEND1_URL = "http://localhost:5000"
-  REACT_APP_BACKEND2_URL = "http://localhost:8080"
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
-  processes = ["app"]
+  processes = ['app']
 
 [[vm]]
-  cpu_kind = "shared"
+  memory = '1gb'
+  cpu_kind = 'shared'
   cpus = 1
   memory_mb = 256
-
