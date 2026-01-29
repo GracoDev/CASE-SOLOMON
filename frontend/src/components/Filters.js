@@ -49,7 +49,7 @@ function Filters({ filters, onFiltersChange, onApplyFilters, onClearFilters }) {
           >
             <option value="">Todos</option>
             <option value="credit_card">Cartão de Crédito</option>
-            <option value="billet">Boleto</option>
+            <option value="boleto">Boleto</option>
             <option value="pix">PIX</option>
           </select>
         </div>
